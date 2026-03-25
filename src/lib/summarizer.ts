@@ -1,6 +1,12 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const client = new Anthropic();
+function getGeminiClient() {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing environment variable: GEMINI_API_KEY");
+  }
+  return new GoogleGenerativeAI(apiKey);
+}
 
 interface SummaryResult {
   readonly title_ja: string;
@@ -26,13 +32,11 @@ export async function summarizeEntry(
 ): Promise<SummaryResult> {
   const truncated = content.slice(0, 4000);
 
-  const message = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 1024,
-    messages: [
-      {
-        role: "user",
-        content: `以下は「${sourceName}」からのアップデート情報です。
+  const genAI = getGeminiClient();
+  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+  const result = await model.generateContent(
+    `以下は「${sourceName}」からのアップデート情報です。
 
 ---
 ${truncated}
@@ -46,13 +50,10 @@ ${truncated}
 }
 
 カテゴリIDは以下から1つ以上選択:
-model-update, api-change, product-launch, pricing, research, claude-code, sdk, safety, other`,
-      },
-    ],
-  });
+model-update, api-change, product-launch, pricing, research, claude-code, sdk, safety, other`
+  );
 
-  const text =
-    message.content[0].type === "text" ? message.content[0].text : "";
+  const text = result.response.text();
 
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
