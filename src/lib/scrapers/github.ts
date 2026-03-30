@@ -30,10 +30,12 @@ export async function scrapeGitHub(): Promise<{
   processed: number;
   new: number;
   errors: number;
+  errorMessages: string[];
 }> {
   let processed = 0;
   let newCount = 0;
   let errors = 0;
+  const errorMessages: string[] = [];
 
   const headers: Record<string, string> = {
     Accept: "application/vnd.github.v3+json",
@@ -89,10 +91,9 @@ export async function scrapeGitHub(): Promise<{
 
           if (result) newCount++;
         } catch (err) {
-          console.error(
-            `Error processing release ${release.html_url}:`,
-            err
-          );
+          const msg = err instanceof Error ? err.message : String(err);
+          console.error(`Error processing release ${release.html_url}:`, msg);
+          errorMessages.push(msg);
           errors++;
         }
       }
@@ -102,5 +103,5 @@ export async function scrapeGitHub(): Promise<{
     }
   }
 
-  return { processed, new: newCount, errors };
+  return { processed, new: newCount, errors, errorMessages: errorMessages.slice(0, 3) };
 }

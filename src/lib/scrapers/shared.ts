@@ -24,11 +24,7 @@ export function verifyCronSecret(request: NextRequest): boolean {
   return authHeader === `Bearer ${secret}`;
 }
 
-export function cronResponse(result: {
-  processed: number;
-  new: number;
-  errors: number;
-}) {
+export function cronResponse(result: Record<string, unknown>) {
   return Response.json(result);
 }
 
