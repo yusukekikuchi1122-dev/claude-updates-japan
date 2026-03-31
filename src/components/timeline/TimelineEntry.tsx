@@ -16,6 +16,15 @@ export function TimelineEntry({
             <time dateTime={entry.published_at}>
               {new Date(entry.published_at).toLocaleDateString("ja-JP")}
             </time>
+            <span>·</span>
+            <a
+              href={entry.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[var(--accent)] transition-colors"
+            >
+              元記事 ↗
+            </a>
           </div>
           <h3 className="font-medium leading-snug">
             <Link

@@ -117,6 +117,26 @@ export async function insertEntry(entry: {
   return data;
 }
 
+export async function getTodayEntries(): Promise<readonly EntryWithCategories[]> {
+  const supabase = getSupabase();
+
+  const jstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const jstDateStr = jstNow.toISOString().slice(0, 10);
+  const startOfDayUTC = new Date(jstDateStr + "T00:00:00+09:00").toISOString();
+  const endOfDayUTC = new Date(jstDateStr + "T23:59:59.999+09:00").toISOString();
+
+  const { data, error } = await supabase
+    .from("entries")
+    .select("*, entry_categories(category_id), sources(name)")
+    .gte("published_at", startOfDayUTC)
+    .lt("published_at", endOfDayUTC)
+    .order("published_at", { ascending: false });
+
+  if (error) throw error;
+
+  return (data ?? []).map(mapEntryWithCategories);
+}
+
 function mapEntryWithCategories(row: Record<string, unknown>): EntryWithCategories {
   const entryCategories = row.entry_categories as
     | { category_id: string }[]

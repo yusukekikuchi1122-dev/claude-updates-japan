@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import type { EntryWithCategories } from "@/lib/supabase/types";
 
 function getGeminiClient() {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -76,5 +77,63 @@ model-update, api-change, product-launch, pricing, research, claude-code, sdk, s
     categories: (parsed.categories ?? ["other"]).filter((c) =>
       VALID_CATEGORIES.has(c)
     ),
+  };
+}
+
+export interface DailySummaryResult {
+  readonly summary: string;
+  readonly sourceLinks: readonly { readonly title: string; readonly url: string }[];
+}
+
+export async function generateDailySummary(
+  entries: readonly EntryWithCategories[]
+): Promise<DailySummaryResult> {
+  if (entries.length === 0) {
+    return { summary: "", sourceLinks: [] };
+  }
+
+  const entriesText = entries
+    .map(
+      (e) =>
+        `- ${e.title_ja ?? e.title}（${e.source_name ?? "不明"}）: ${e.summary_ja ?? ""}\n  URL: ${e.source_url}`
+    )
+    .join("\n")
+    .slice(0, 6000);
+
+  const genAI = getGeminiClient();
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+  const result = await model.generateContent(
+    `以下は今日のClaude/Anthropicに関するアップデート一覧です。
+
+${entriesText}
+
+これらを俯瞰して、今日の全体像がわかる日本語の要約を3〜5文で書いてください。
+また、各ソース記事へのリンクもまとめてください。
+
+以下のJSON形式で回答してください（JSON以外は出力しないでください）:
+{
+  "summary": "今日の要約文...",
+  "sourceLinks": [
+    { "title": "記事タイトル", "url": "https://..." }
+  ]
+}`
+  );
+
+  const text = result.response.text();
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    return { summary: "", sourceLinks: [] };
+  }
+
+  const parsed = JSON.parse(jsonMatch[0]) as {
+    summary?: string;
+    sourceLinks?: { title?: string; url?: string }[];
+  };
+
+  return {
+    summary: parsed.summary ?? "",
+    sourceLinks: (parsed.sourceLinks ?? [])
+      .filter((l): l is { title: string; url: string } => !!l.title && !!l.url),
   };
 }
