@@ -62,7 +62,9 @@ export async function scrapeGitHub(): Promise<{
         continue;
       }
 
-      const releases = (await response.json()) as readonly GitHubRelease[];
+      const allReleases = (await response.json()) as readonly GitHubRelease[];
+      const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+      const releases = allReleases.filter((r) => r.published_at >= cutoff);
       processed += releases.length;
 
       for (const release of releases) {

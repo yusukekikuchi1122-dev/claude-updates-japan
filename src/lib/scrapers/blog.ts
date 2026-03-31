@@ -27,7 +27,9 @@ export async function scrapeBlog(): Promise<{
   for (const source of BLOG_URLS) {
     try {
       const html = await fetchPage(source.url);
-      const articles = parseBlogPage(html, source.sourceId);
+      const allArticles = parseBlogPage(html, source.sourceId);
+      const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+      const articles = allArticles.filter((a) => a.date >= cutoff);
       processed += articles.length;
 
       for (const article of articles) {
