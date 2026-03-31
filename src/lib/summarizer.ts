@@ -33,7 +33,7 @@ export async function summarizeEntry(
   const truncated = content.slice(0, 4000);
 
   const genAI = getGeminiClient();
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-preview-04-17" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   const result = await model.generateContent(
     `以下は「${sourceName}」からのアップデート情報です。
