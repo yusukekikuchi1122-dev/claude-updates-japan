@@ -128,9 +128,9 @@ export async function getTodayEntries(): Promise<readonly EntryWithCategories[]>
   const { data, error } = await supabase
     .from("entries")
     .select("*, entry_categories(category_id), sources(name)")
-    .gte("published_at", startOfDayUTC)
-    .lt("published_at", endOfDayUTC)
-    .order("published_at", { ascending: false });
+    .gte("scraped_at", startOfDayUTC)
+    .lt("scraped_at", endOfDayUTC)
+    .order("scraped_at", { ascending: false });
 
   if (error) throw error;
 

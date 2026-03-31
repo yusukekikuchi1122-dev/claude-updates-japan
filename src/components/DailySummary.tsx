@@ -8,7 +8,8 @@ interface DailySummaryProps {
 export function DailySummary({ summary, entryCount }: DailySummaryProps) {
   if (!summary.summary || entryCount === 0) return null;
 
-  const today = new Date().toLocaleDateString("ja-JP", {
+  const jstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const today = jstNow.toLocaleDateString("ja-JP", {
     year: "numeric",
     month: "long",
     day: "numeric",
