@@ -29,23 +29,12 @@ export async function scrapeBlog(): Promise<{
       const html = await fetchPage(source.url);
       const allArticles = parseBlogPage(html, source.sourceId);
       const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-      const articles = allArticles.filter((a) => a.date >= cutoff);
+      const articles = allArticles.filter((a) => a.date >= cutoff).slice(0, 2);
       processed += articles.length;
 
       for (const article of articles) {
         try {
-          let contentRaw = article.title;
-          try {
-            const articleHtml = await fetchPage(article.url);
-            const $article = cheerio.load(articleHtml);
-            $article("nav, header, footer, script, style").remove();
-            contentRaw =
-              $article("article").text().trim() ||
-              $article("main").text().trim() ||
-              article.title;
-          } catch {
-            // Use title as fallback content
-          }
+          const contentRaw = article.title;
 
           const summary = await summarizeEntry(
             contentRaw,
