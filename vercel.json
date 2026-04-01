@@ -1,8 +1,5 @@
 {
   "crons": [
-    { "path": "/api/cron/scrape-blog", "schedule": "0 6 * * *" },
-    { "path": "/api/cron/scrape-github", "schedule": "5 6 * * *" },
-    { "path": "/api/cron/scrape-changelog", "schedule": "10 6 * * *" },
-    { "path": "/api/cron/scrape-docs", "schedule": "15 6 * * *" }
+    { "path": "/api/cron/scrape-all", "schedule": "0 6 * * *" }
   ]
 }
